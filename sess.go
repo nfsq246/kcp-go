@@ -10,6 +10,7 @@ package kcp
 import (
 	"crypto/rand"
 	"encoding/binary"
+	"errors"
 	"hash/crc32"
 	"io"
 	"net"
@@ -17,7 +18,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/pkg/errors"
 	"golang.org/x/net/ipv4"
 	"golang.org/x/net/ipv6"
 )
@@ -244,11 +244,11 @@ func (s *UDPSession) Read(b []byte) (n int, err error) {
 		select {
 		case <-s.chReadEvent:
 		case <-c:
-			return 0, errors.WithStack(errTimeout)
+			return 0, errors.New(errTimeout.Error())
 		case <-s.chSocketReadError:
 			return 0, s.socketReadError.Load().(error)
 		case <-s.die:
-			return 0, errors.WithStack(io.ErrClosedPipe)
+			return 0, errors.New(io.ErrClosedPipe.Error())
 		}
 	}
 }
@@ -272,7 +272,7 @@ func (s *UDPSession) WriteBuffers(v [][]byte) (n int, err error) {
 		case <-s.chSocketWriteError:
 			return 0, s.socketWriteError.Load().(error)
 		case <-s.die:
-			return 0, errors.WithStack(io.ErrClosedPipe)
+			return 0, errors.New(io.ErrClosedPipe.Error())
 		default:
 		}
 
@@ -309,11 +309,11 @@ func (s *UDPSession) WriteBuffers(v [][]byte) (n int, err error) {
 		select {
 		case <-s.chWriteEvent:
 		case <-c:
-			return 0, errors.WithStack(errTimeout)
+			return 0, errors.New(errTimeout.Error())
 		case <-s.chSocketWriteError:
 			return 0, s.socketWriteError.Load().(error)
 		case <-s.die:
-			return 0, errors.WithStack(io.ErrClosedPipe)
+			return 0, errors.New(io.ErrClosedPipe.Error())
 		}
 	}
 }
@@ -362,7 +362,7 @@ func (s *UDPSession) Close() error {
 			return nil
 		}
 	} else {
-		return errors.WithStack(io.ErrClosedPipe)
+		return errors.New(io.ErrClosedPipe.Error())
 	}
 }
 
@@ -908,13 +908,13 @@ func (l *Listener) AcceptKCP() (*UDPSession, error) {
 
 	select {
 	case <-timeout:
-		return nil, errors.WithStack(errTimeout)
+		return nil, errors.New(errTimeout.Error())
 	case c := <-l.chAccepts:
 		return c, nil
 	case <-l.chSocketReadError:
 		return nil, l.socketReadError.Load().(error)
 	case <-l.die:
-		return nil, errors.WithStack(io.ErrClosedPipe)
+		return nil, errors.New(io.ErrClosedPipe.Error())
 	}
 }
 
@@ -948,7 +948,7 @@ func (l *Listener) Close() error {
 			err = l.conn.Close()
 		}
 	} else {
-		err = errors.WithStack(io.ErrClosedPipe)
+		err = errors.New(io.ErrClosedPipe.Error())
 	}
 	return err
 }
@@ -1062,7 +1062,7 @@ func NewConn2(raddr net.Addr, block BlockCrypt, dataShards, parityShards int, co
 func NewConn(raddr string, block BlockCrypt, dataShards, parityShards int, conn net.PacketConn) (*UDPSession, error) {
 	udpaddr, err := net.ResolveUDPAddr("udp", raddr)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.New(err.Error())
 	}
 	return NewConn2(udpaddr, block, dataShards, parityShards, conn)
 }

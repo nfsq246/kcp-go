@@ -3,7 +3,7 @@ package kcp
 import (
 	"sync/atomic"
 
-	"github.com/pkg/errors"
+	"errors"
 	"golang.org/x/net/ipv4"
 )
 
@@ -15,7 +15,7 @@ func (s *UDPSession) defaultTx(txqueue []ipv4.Message) {
 			nbytes += n
 			npkts++
 		} else {
-			s.notifyWriteError(errors.WithStack(err))
+			s.notifyWriteError(errors.New(err.Error()))
 			break
 		}
 	}

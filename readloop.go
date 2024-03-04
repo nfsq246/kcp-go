@@ -1,9 +1,8 @@
 package kcp
 
 import (
+	"errors"
 	"sync/atomic"
-
-	"github.com/pkg/errors"
 )
 
 func (s *UDPSession) defaultReadLoop() {
@@ -20,7 +19,7 @@ func (s *UDPSession) defaultReadLoop() {
 			}
 			s.packetInput(buf[:n])
 		} else {
-			s.notifyReadError(errors.WithStack(err))
+			s.notifyReadError(errors.New(err.Error()))
 			return
 		}
 	}
@@ -32,7 +31,7 @@ func (l *Listener) defaultMonitor() {
 		if n, from, err := l.conn.ReadFrom(buf); err == nil {
 			l.packetInput(buf[:n], from)
 		} else {
-			l.notifyReadError(errors.WithStack(err))
+			l.notifyReadError(errors.New(err.Error()))
 			return
 		}
 	}
