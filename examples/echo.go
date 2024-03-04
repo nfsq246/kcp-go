@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha1"
+	"github.com/nfsq246/kcp-go"
 	"io"
 	"log"
 	"time"
