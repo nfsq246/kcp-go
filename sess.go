@@ -978,16 +978,17 @@ func Listen(laddr string) (net.Listener, error) { return ListenWithOptions(laddr
 //
 // Check https://github.com/klauspost/reedsolomon for details
 func ListenWithOptions(laddr string, block BlockCrypt, dataShards, parityShards int) (*Listener, error) {
-	udpaddr, err := net.ResolveUDPAddr("udp", laddr)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	conn, err := net.ListenUDP("udp", udpaddr)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	return serveConn(block, dataShards, parityShards, conn, true)
+	panic("unsupported")
+	//udpaddr, err := net.ResolveUDPAddr("udp", laddr)
+	//if err != nil {
+	//	return nil, errors.WithStack(err)
+	//}
+	//conn, err := net.ListenUDP("udp", udpaddr)
+	//if err != nil {
+	//	return nil, errors.WithStack(err)
+	//}
+	//
+	//return serveConn(block, dataShards, parityShards, conn, true)
 }
 
 // ServeConn serves KCP protocol for a single packet connection.
@@ -1022,24 +1023,27 @@ func Dial(raddr string) (net.Conn, error) { return DialWithOptions(raddr, nil, 0
 //
 // Check https://github.com/klauspost/reedsolomon for details
 func DialWithOptions(raddr string, block BlockCrypt, dataShards, parityShards int) (*UDPSession, error) {
+
+	panic("unsupported")
+
 	// network type detection
-	udpaddr, err := net.ResolveUDPAddr("udp", raddr)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	network := "udp4"
-	if udpaddr.IP.To4() == nil {
-		network = "udp"
-	}
-
-	conn, err := net.ListenUDP(network, nil)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	var convid uint32
-	binary.Read(rand.Reader, binary.LittleEndian, &convid)
-	return newUDPSession(convid, dataShards, parityShards, nil, conn, true, udpaddr, block), nil
+	//udpaddr, err := net.ResolveUDPAddr("udp", raddr)
+	//if err != nil {
+	//	return nil, errors.WithStack(err)
+	//}
+	//network := "udp4"
+	//if udpaddr.IP.To4() == nil {
+	//	network = "udp"
+	//}
+	//
+	//conn, err := net.ListenUDP(network, nil)
+	//if err != nil {
+	//	return nil, errors.WithStack(err)
+	//}
+	//
+	//var convid uint32
+	//binary.Read(rand.Reader, binary.LittleEndian, &convid)
+	//return newUDPSession(convid, dataShards, parityShards, nil, conn, true, udpaddr, block), nil
 }
 
 // NewConn3 establishes a session and talks KCP protocol over a packet connection.
