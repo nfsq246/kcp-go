@@ -4,10 +4,9 @@ import (
 	"sync/atomic"
 
 	"errors"
-	"golang.org/x/net/ipv4"
 )
 
-func (s *UDPSession) defaultTx(txqueue []ipv4.Message) {
+func (s *UDPSession) defaultTx(txqueue []Message) {
 	nbytes := 0
 	npkts := 0
 	for k := range txqueue {

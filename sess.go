@@ -17,9 +17,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"golang.org/x/net/ipv4"
-	"golang.org/x/net/ipv6"
 )
 
 const (
@@ -102,7 +99,7 @@ type (
 		nonce Entropy
 
 		// packets waiting to be sent on wire
-		txqueue         []ipv4.Message
+		txqueue         []Message
 		xconn           batchConn // for x/net
 		xconnWriteError error
 
@@ -138,18 +135,6 @@ func newUDPSession(conv uint32, dataShards, parityShards int, l *Listener, conn 
 	sess.l = l
 	sess.block = block
 	sess.recvbuf = make([]byte, mtuLimit)
-
-	// cast to writebatch conn
-	if _, ok := conn.(*net.UDPConn); ok {
-		addr, err := net.ResolveUDPAddr("udp", conn.LocalAddr().String())
-		if err == nil {
-			if addr.IP.To4() != nil {
-				sess.xconn = ipv4.NewPacketConn(conn)
-			} else {
-				sess.xconn = ipv6.NewPacketConn(conn)
-			}
-		}
-	}
 
 	// FEC codec initialization
 	sess.fecDecoder = newFECDecoder(dataShards, parityShards)
@@ -480,19 +465,6 @@ func (s *UDPSession) SetDSCP(dscp int) error {
 		return ts.SetDSCP(dscp)
 	}
 
-	if nc, ok := s.conn.(net.Conn); ok {
-		var succeed bool
-		if err := ipv4.NewConn(nc).SetTOS(dscp << 2); err == nil {
-			succeed = true
-		}
-		if err := ipv6.NewConn(nc).SetTrafficClass(dscp); err == nil {
-			succeed = true
-		}
-
-		if succeed {
-			return nil
-		}
-	}
 	return errInvalidOperation
 }
 
@@ -550,7 +522,7 @@ func (s *UDPSession) output(buf []byte) {
 	}
 
 	// 4. TxQueue
-	var msg ipv4.Message
+	var msg Message
 	for i := 0; i < s.dup+1; i++ {
 		bts := xmitBuf.Get().([]byte)[:len(buf)]
 		copy(bts, buf)
@@ -878,19 +850,6 @@ func (l *Listener) SetDSCP(dscp int) error {
 		return ts.SetDSCP(dscp)
 	}
 
-	if nc, ok := l.conn.(net.Conn); ok {
-		var succeed bool
-		if err := ipv4.NewConn(nc).SetTOS(dscp << 2); err == nil {
-			succeed = true
-		}
-		if err := ipv6.NewConn(nc).SetTrafficClass(dscp); err == nil {
-			succeed = true
-		}
-
-		if succeed {
-			return nil
-		}
-	}
 	return errInvalidOperation
 }
 

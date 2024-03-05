@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/klauspost/reedsolomon"
+	"github.com/nfsq246/reedsolomon"
 )
 
 const (
