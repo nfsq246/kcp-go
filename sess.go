@@ -186,6 +186,7 @@ func (s *UDPSession) ReadPeekSize() int {
 
 // Read implements net.Conn
 func (s *UDPSession) Read(b []byte) (n int, err error) {
+RESET_TIMER:
 	var timeout *time.Timer
 	// deadline for current reading operation
 	var c <-chan time.Time
@@ -234,6 +235,10 @@ func (s *UDPSession) Read(b []byte) (n int, err error) {
 		// wait for read event or timeout or error
 		select {
 		case <-s.chReadEvent:
+			if timeout != nil {
+				timeout.Stop()
+				goto RESET_TIMER
+			}
 		case <-c:
 			return 0, errors.New(errTimeout.Error())
 		case <-s.chSocketReadError:
@@ -255,6 +260,7 @@ func (s *UDPSession) Write(b []byte) (n int, err error) { return s.WriteBuffers(
 
 // WriteBuffers write a vector of byte slices to the underlying connection
 func (s *UDPSession) WriteBuffers(v [][]byte) (n int, err error) {
+RESET_TIMER:
 	var timeout *time.Timer
 	var c <-chan time.Time
 	if !s.wd.IsZero() {
@@ -305,6 +311,10 @@ func (s *UDPSession) WriteBuffers(v [][]byte) (n int, err error) {
 
 		select {
 		case <-s.chWriteEvent:
+			if timeout != nil {
+				timeout.Stop()
+				goto RESET_TIMER
+			}
 		case <-c:
 			return 0, errors.New(errTimeout.Error())
 		case <-s.chSocketWriteError:
@@ -372,9 +382,9 @@ func (s *UDPSession) RemoteAddr() net.Addr { return s.remote }
 // SetDeadline sets the deadline associated with the listener. A zero time value disables the deadline.
 func (s *UDPSession) SetDeadline(t time.Time) error {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	s.rd = t
 	s.wd = t
+	s.mu.Unlock()
 	s.notifyReadEvent()
 	s.notifyWriteEvent()
 	return nil
@@ -383,8 +393,8 @@ func (s *UDPSession) SetDeadline(t time.Time) error {
 // SetReadDeadline implements the Conn SetReadDeadline method.
 func (s *UDPSession) SetReadDeadline(t time.Time) error {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	s.rd = t
+	s.mu.Unlock()
 	s.notifyReadEvent()
 	return nil
 }
@@ -392,8 +402,8 @@ func (s *UDPSession) SetReadDeadline(t time.Time) error {
 // SetWriteDeadline implements the Conn SetWriteDeadline method.
 func (s *UDPSession) SetWriteDeadline(t time.Time) error {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	s.wd = t
+	s.mu.Unlock()
 	s.notifyWriteEvent()
 	return nil
 }
