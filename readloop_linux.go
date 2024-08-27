@@ -32,7 +32,6 @@ import (
 
 	"github.com/pkg/errors"
 	"golang.org/x/net/ipv4"
-	"golang.org/x/net/ipv6"
 )
 
 // readLoop is the optimized version of readLoop for linux utilizing recvmmsg syscall
@@ -86,16 +85,16 @@ func (s *UDPSession) readLoop() {
 // monitor is the optimized version of monitor for linux utilizing recvmmsg syscall
 func (l *Listener) monitor() {
 	var xconn batchConn
-	if _, ok := l.conn.(*net.UDPConn); ok {
-		addr, err := net.ResolveUDPAddr("udp", l.conn.LocalAddr().String())
-		if err == nil {
-			if addr.IP.To4() != nil {
-				xconn = ipv4.NewPacketConn(l.conn)
-			} else {
-				xconn = ipv6.NewPacketConn(l.conn)
-			}
-		}
-	}
+	//if _, ok := l.conn.(*net.UDPConn); ok {
+	//	addr, err := net.ResolveUDPAddr("udp", l.conn.LocalAddr().String())
+	//	if err == nil {
+	//		if addr.IP.To4() != nil {
+	//			xconn = ipv4.NewPacketConn(l.conn)
+	//		} else {
+	//			xconn = ipv6.NewPacketConn(l.conn)
+	//		}
+	//	}
+	//}
 
 	// default version
 	if xconn == nil {
